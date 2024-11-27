@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "movie-gpt-593be",
+    "Movie": "movie-gpt-593be"
+  },
+  "targets": {},
+  "etags": {}
+}
