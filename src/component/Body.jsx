@@ -1,30 +1,37 @@
-import React from 'react';
-import Header from './Header';
-import Browser from './Browser';
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { Outlet } from 'react-router-dom';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { addUser, removeUser } from '../utils/UserSlice';
+import { useNavigate } from 'react-router-dom';
+
+// PrivateRoute to protect Browser route
 
 function Body() {
-  const AppRouter = createBrowserRouter([
-    {
-      path: "/",
-      element: <Header />
-    },
-    {
-      path: "/Browser",
-      element: <Browser />
-    }
-  ]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const auth = getAuth();
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log(user,"body")
+        const { uid, email , photoURL , displayName } = user;
+        dispatch(addUser({ uid, email , photoURL , displayName }));
+        navigate("/Browser");  // Redirect to Browser page
+      } else {
+        dispatch(removeUser());
+        navigate("/");  // Redirect to Login page
+      }
+    });
+
+    return () => unsubscribe(); // Clean up the listener
+  }, [dispatch, navigate]);
 
   return (
-    <div className='w-[100vw] h-[100vh]  overflow-hidden'>
-      <img
-        className='w-[100%] h-[100%] object-cover '
-        src="https://assets.nflxext.com/ffe/siteui/vlv3/4690cab8-243a-4552-baef-1fb415632f74/web/IN-en-20241118-TRIFECTA-perspective_0b813abc-8365-4a43-a9d8-14c06e84c9f3_large.jpg"
-        alt="Background"
-      />
-      <div className='absolute inset-0'>
-        <RouterProvider router={AppRouter} />
-      </div>
+    <div className='absolute inset-0'>
+     <Outlet/>
     </div>
   );
 }
